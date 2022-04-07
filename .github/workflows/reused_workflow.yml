@@ -1,0 +1,68 @@
+name: wcl github actions workflow
+on:
+  workflow_call:
+    inputs:
+      project_name:
+        required: true
+        type: string
+      component_name:
+        required: true
+        type: string
+      registry:
+        required: true
+        type: string
+      registry_user:
+        required: true
+        type: string
+      dockerfile_path:
+        required: true
+        type: string 
+    secrets:
+      HARBOR_CN_GH_ACTIONS_PASSWORD:
+        required: true
+jobs:
+  build:
+    name: build
+    # runs-on: ubuntu-latest
+    runs-on: cn
+    timeout-minutes: 20
+    env:
+      REMOTE_DOCKER_REGISTRY: registry.wiredcraft.cn
+    # outputs:
+    #   # tag_ref:  ${{ steps.determine_tag.outputs.ref }}
+    #   tag_full: ${{ steps.determine_tag.outputs.full }}
+    steps:
+      - name: Determine Docker image tag and name
+        id: determine_tag
+        run: |
+          ref="${GITHUB_REF##*/}"
+          echo "::set-output name=ref::$(echo $ref)"
+          echo "::set-output name=full::$(echo ${{ env.REMOTE_DOCKER_REGISTRY }}/${{ inputs.project_name }}/${{ inputs.component_name }}:$ref)"
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+
+      - name: Login to PrivateRegistry
+        # docker/login-action@v1.8.0
+        uses: docker/login-action@f3364599c6aa293cdc2b8391b1b56d0c30e45c8a
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ inputs.registry_user }}
+          password: ${{ secrets.HARBOR_CN_GH_ACTIONS_PASSWORD }}
+
+      - name: Build docker image
+        run: |
+          cd ${{ inputs.dockerfile_path }}
+          docker build -t ${{ steps.determine_tag.outputs.full }} \
+            --build-arg OMNI_COMPONENT_COMMIT=${{ github.sha }} \
+            --build-arg OMNI_COMPONENT_VERSION=${{ github.ref }} \
+            .
+
+      - name: Push docker image
+        # v2.4.0
+        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          command: docker push ${{ steps.determine_tag.outputs.full }}
