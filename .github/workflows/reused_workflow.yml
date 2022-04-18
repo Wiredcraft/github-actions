@@ -14,12 +14,22 @@ on:
       registry_user:
         required: true
         type: string
+      node_env: 
+        required: false
+        type: string 
+        default: 'production'
       dockerfile_path:
-        required: true
+        description: 'the path where docker build execute.'
+        required: false
+        default: './'
         type: string 
     secrets:
       HARBOR_CN_GH_ACTIONS_PASSWORD:
         required: true
+      NPM_TOKEN:
+        required: true
+      
+
 jobs:
   build:
     name: build
@@ -55,8 +65,11 @@ jobs:
         run: |
           cd ${{ inputs.dockerfile_path }}
           docker build -t ${{ steps.determine_tag.outputs.full }} \
+            --build-arg OMNI_COMPONENT=${{ inputs.component_name }} \
             --build-arg OMNI_COMPONENT_COMMIT=${{ github.sha }} \
             --build-arg OMNI_COMPONENT_VERSION=${{ github.ref }} \
+            --build-arg NODE_ENV=${{ inputs.node_env }} \
+            --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             .
 
       - name: Push docker image
