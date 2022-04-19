@@ -8,12 +8,6 @@ on:
       component_name:
         required: true
         type: string
-      registry:
-        required: true
-        type: string
-      registry_user:
-        required: true
-        type: string
       node_env: 
         required: false
         type: string 
@@ -24,12 +18,14 @@ on:
         default: './'
         type: string 
     secrets:
+      HARBOR_GH_ACTIONS_USERNAME:
+        required: true
       HARBOR_CN_GH_ACTIONS_PASSWORD:
+        required: true
+      HARBOR_CN:
         required: true
       NPM_TOKEN:
         required: true
-      
-
 jobs:
   build:
     name: build
@@ -37,45 +33,39 @@ jobs:
     runs-on: cn
     timeout-minutes: 20
     env:
-      REMOTE_DOCKER_REGISTRY: registry.wiredcraft.cn
-    # outputs:
-    #   # tag_ref:  ${{ steps.determine_tag.outputs.ref }}
-    #   tag_full: ${{ steps.determine_tag.outputs.full }}
+      REMOTE_DOCKER_REGISTRY: ${{ secrets.HARBOR_CN }}
+
     steps:
-      - name: Determine Docker image tag and name
-        id: determine_tag
-        run: |
-          ref="${GITHUB_REF##*/}"
-          echo "::set-output name=ref::$(echo $ref)"
-          echo "::set-output name=full::$(echo ${{ env.REMOTE_DOCKER_REGISTRY }}/${{ inputs.project_name }}/${{ inputs.component_name }}:$ref)"
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           fetch-depth: "0"
 
-      - name: Login to PrivateRegistry
-        # docker/login-action@v1.8.0
-        uses: docker/login-action@f3364599c6aa293cdc2b8391b1b56d0c30e45c8a
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v3
         with:
-          registry: ${{ inputs.registry }}
-          username: ${{ inputs.registry_user }}
+          images: ${{ env.REMOTE_DOCKER_REGISTRY }}/${{ inputs.project_name }}/${{ inputs.component_name }}
+
+      - name: Login to PrivateRegistry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.HARBOR_CN }}
+          username: ${{ secrets.HARBOR_GH_ACTIONS_USERNAME }}
           password: ${{ secrets.HARBOR_CN_GH_ACTIONS_PASSWORD }}
 
-      - name: Build docker image
-        run: |
-          cd ${{ inputs.dockerfile_path }}
-          docker build -t ${{ steps.determine_tag.outputs.full }} \
-            --build-arg OMNI_COMPONENT=${{ inputs.component_name }} \
-            --build-arg OMNI_COMPONENT_COMMIT=${{ github.sha }} \
-            --build-arg OMNI_COMPONENT_VERSION=${{ github.ref }} \
-            --build-arg NODE_ENV=${{ inputs.node_env }} \
-            --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} \
-            .
-
-      - name: Push docker image
-        # v2.4.0
-        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+      - name: Build and push
+        uses: docker/build-push-action@v2
         with:
-          timeout_minutes: 5
-          max_attempts: 3
-          command: docker push ${{ steps.determine_tag.outputs.full }}
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            OMNI_COMPONENT=${{ inputs.component_name }}
+            NODE_ENV=${{ inputs.node_env }}
+            NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            OMNI_COMPONENT_COMMIT=${{ github.sha }}
+            OMNI_COMPONENT_VERSION=${{ github.ref }}
