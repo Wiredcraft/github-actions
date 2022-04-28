@@ -1,0 +1,18 @@
+name: wcl github actions workflow
+on:
+  workflow_call:
+ 
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+#     runs-on: 
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: "0"
+      - name: echo msg
+        run: echo "hello world"
