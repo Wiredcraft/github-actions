@@ -32,14 +32,24 @@ jobs:
     # runs-on: ubuntu-latest
     runs-on: cn
     timeout-minutes: 20
-    env:
-      REMOTE_DOCKER_REGISTRY: ${{ secrets.HARBOR_CN }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           fetch-depth: "0"
+          
+     # Scan repo for secrets
+      - name: Run scanner for the repository
+        run:  /usr/local/bin/whispers ${{ github.workspace }} > /tmp/scan_output.json
+ 
+     # Upload Artifacts
+      - name: Upload the scan output
+        uses: actions/upload-artifact@v2
+        with:
+          name: scan_results
+          path: /tmp/scan_output.json
+          retention-days: 2
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
@@ -47,7 +57,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REMOTE_DOCKER_REGISTRY }}/${{ inputs.project_name }}/${{ inputs.component_name }}
+          images: ${{ secrets.HARBOR_CN }}/${{ inputs.project_name }}/${{ inputs.component_name }}
 
       - name: Login to PrivateRegistry
         uses: docker/login-action@v1
