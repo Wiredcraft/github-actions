@@ -17,6 +17,10 @@ on:
         required: false
         default: './'
         type: string 
+      runner:
+        type: string
+        default: 'cn'
+        required: false
     secrets:
       HARBOR_GH_ACTIONS_USERNAME:
         required: true
@@ -30,7 +34,7 @@ jobs:
   build:
     name: build
     # runs-on: ubuntu-latest
-    runs-on: cn
+    runs-on: ${{ inputs.runner }}
     timeout-minutes: 20
 
     steps:
