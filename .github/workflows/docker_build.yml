@@ -73,7 +73,7 @@ jobs:
 
       - name: Login to PrivateRegistry
         # https://github.com/actions/runner/issues/1483
-        if: ${{ inputs.push == 'true' }}
+        if: ${{ inputs.push }}
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.REGISTRY }}
