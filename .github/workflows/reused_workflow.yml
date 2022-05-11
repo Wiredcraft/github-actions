@@ -18,6 +18,7 @@ on:
         default: './'
         type: string 
       runner:
+        ## ['cn', 'us', 'cn1', 'cn2', 'cn3', 'us1', 'us2', 'us3']
         type: string
         default: 'cn'
         required: false
@@ -33,7 +34,6 @@ on:
 jobs:
   build:
     name: build
-    # runs-on: ubuntu-latest
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 20
 
