@@ -8,15 +8,15 @@ on:
       component_name:
         required: true
         type: string
-      node_env: 
+      node_env:
         required: false
-        type: string 
+        type: string
         default: 'production'
       dockerfile_path:
         description: 'the path where docker build execute.'
         required: false
         default: './'
-        type: string 
+        type: string
       runner:
         ## ['cn', 'us', 'cn1', 'cn2', 'cn3', 'us1', 'us2', 'us3']
         type: string
@@ -42,11 +42,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: "0"
-          
+
      # Scan repo for secrets
       - name: Run scanner for the repository
         run:  /usr/local/bin/whispers ${{ github.workspace }} > /tmp/scan_output.json
- 
+
      # Upload Artifacts
       - name: Upload the scan output
         uses: actions/upload-artifact@v2
