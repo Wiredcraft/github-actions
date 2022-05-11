@@ -1,39 +1,43 @@
-name: wcl github actions workflow
+name: Workflow to build Docker image
 on:
   workflow_call:
     inputs:
-      project_name:
+      project:
         required: true
         type: string
-      component_name:
+      component:
         required: true
         type: string
       node_env:
         required: false
         type: string
-        default: 'production'
-      dockerfile_path:
-        description: 'the path where docker build execute.'
+        default: "production"
+      push:
         required: false
-        default: './'
+        type: boolean
+        default: true
+      docker_context:
+        description: "the path where docker build execute."
+        required: false
+        default: "./"
         type: string
       runner:
         ## ['cn', 'us', 'cn1', 'cn2', 'cn3', 'us1', 'us2', 'us3']
         type: string
-        default: 'cn'
+        default: "cn"
         required: false
     secrets:
-      HARBOR_GH_ACTIONS_USERNAME:
+      REGISTRY_USERNAME:
         required: true
-      HARBOR_CN_GH_ACTIONS_PASSWORD:
+      REGISTRY_PASSWORD:
         required: true
-      HARBOR_CN:
+      REGISTRY:
         required: true
       NPM_TOKEN:
-        required: true
+        required: false
 jobs:
   build:
-    name: build
+    name: build docker image
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 20
 
@@ -43,11 +47,11 @@ jobs:
         with:
           fetch-depth: "0"
 
-     # Scan repo for secrets
+      # Scan repo for secrets
       - name: Run scanner for the repository
-        run:  /usr/local/bin/whispers ${{ github.workspace }} > /tmp/scan_output.json
+        run: /usr/local/bin/whispers ${{ github.workspace }} > /tmp/scan_output.json
 
-     # Upload Artifacts
+      # Upload Artifacts
       - name: Upload the scan output
         uses: actions/upload-artifact@v2
         with:
@@ -61,24 +65,30 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ secrets.HARBOR_CN }}/${{ inputs.project_name }}/${{ inputs.component_name }}
+          images: ${{ secrets.REGISTRY }}/${{ inputs.project }}/${{ inputs.component }}
+          tags: |
+            type=edge
+            type=ref,event=branch
+            type=ref,event=tag
 
       - name: Login to PrivateRegistry
+        # https://github.com/actions/runner/issues/1483
+        if: ${{ inputs.push == 'true' }}
         uses: docker/login-action@v1
         with:
-          registry: ${{ secrets.HARBOR_CN }}
-          username: ${{ secrets.HARBOR_GH_ACTIONS_USERNAME }}
-          password: ${{ secrets.HARBOR_CN_GH_ACTIONS_PASSWORD }}
+          registry: ${{ secrets.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD}}
 
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: ${{ inputs.dockerfile_path }}
-          push: ${{ github.event_name != 'pull_request' }}
+          context: ${{ inputs.docker_context }}
+          push: ${{ inputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            OMNI_COMPONENT=${{ inputs.component_name }}
+            OMNI_COMPONENT=${{ inputs.component }}
             NODE_ENV=${{ inputs.node_env }}
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
