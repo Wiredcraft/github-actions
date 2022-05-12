@@ -6,7 +6,8 @@ on:
         required: true
         type: string
       component:
-        required: true
+        # not required now
+        required: false
         type: string
       node_env:
         required: false
@@ -40,6 +41,8 @@ jobs:
     name: build docker image
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 20
+    env:
+      COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
 
     steps:
       - name: Checkout repo
@@ -65,7 +68,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ secrets.REGISTRY }}/${{ inputs.project }}/${{ inputs.component }}
+          images: ${{ secrets.REGISTRY }}/${{ inputs.project }}/${{ env.COMPONENT_NAME }}
           tags: |
             type=edge
             type=ref,event=branch
@@ -88,8 +91,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            OMNI_COMPONENT=${{ inputs.component }}
+            OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
             NODE_ENV=${{ inputs.node_env }}
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
-            OMNI_COMPONENT_VERSION=${{ github.ref }}
+            OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
