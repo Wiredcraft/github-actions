@@ -41,20 +41,14 @@ jobs:
     name: build docker image
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 20
+    env:
+      COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           fetch-depth: "0"
-
-      - name: 'use component inputs as component var'
-        if: ${{ inputs.component != ''}}
-        run: echo "COMPONENT_NAME=${{ inputs.component }}" >> $GITHUB_ENV
-
-      - name: 'set component var in case someone forget to set it'
-        if: ${{ inputs.component == ''}}
-        run: echo "COMPONENT_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
 
       # Scan repo for secrets
       - name: Run scanner for the repository
