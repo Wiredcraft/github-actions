@@ -50,17 +50,16 @@ jobs:
         with:
           fetch-depth: "0"
 
-      # Scan repo for secrets
-      - name: Run scanner for the repository
-        run: /usr/local/bin/whispers ${{ github.workspace }} > /tmp/scan_output.json
-
-      # Upload Artifacts
-      - name: Upload the scan output
-        uses: actions/upload-artifact@v2
+      #Trivy as our code scan tool
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
         with:
-          name: scan_results
-          path: /tmp/scan_output.json
-          retention-days: 2
+          scan-type: 'fs'
+          ignore-unfixed: true
+          security-checks: secret
+          format: 'table'
+          severity: 'CRITICAL'
+          exit-code: '1'
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
