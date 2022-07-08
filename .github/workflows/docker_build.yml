@@ -25,7 +25,7 @@ on:
       docker_file:
         description: "the Dockerfile to build"
         required: false
-        default: "Dockerfile"
+        default: "./Dockerfile"
         type: string
       runner:
         ## ['cn', 'us', 'cn1', 'cn2', 'cn3', 'us1', 'us2', 'us3']
