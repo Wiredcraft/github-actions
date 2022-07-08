@@ -22,6 +22,11 @@ on:
         required: false
         default: "./"
         type: string
+      docker_file:
+        description: "the Dockerfile to build"
+        required: false
+        default: "./Dockerfile"
+        type: string
       runner:
         ## ['cn', 'us', 'cn1', 'cn2', 'cn3', 'us1', 'us2', 'us3']
         type: string
@@ -86,6 +91,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ${{ inputs.docker_context }}
+          file: ${{ inputs.docker_file }}
           push: ${{ inputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
