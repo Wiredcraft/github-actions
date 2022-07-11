@@ -55,13 +55,13 @@ jobs:
         with:
           fetch-depth: "0"
 
-      #Trivy as our code scan tool
+      #Trivy as our default code scan tool
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           ignore-unfixed: true
-          security-checks: secret
+          security-checks: secret,vuln
           format: 'table'
           severity: 'CRITICAL'
           exit-code: '1'

@@ -52,18 +52,13 @@ jobs:
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
       REGISTRY: ${{ secrets.REGISTRY }}
 ```
-## Hardcoded secret scan 
-The hardcoded secret leak scan is the default function which has been integration in this workflow. which is the first task and if the scan not passed, it will interrupt this process. util you resovled these secret leak. the task config is 
-```
-#Trivy as our code scan tool
-      - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          ignore-unfixed: true
-          security-checks: secret
-          format: 'table'
-          severity: 'CRITICAL'
-          exit-code: '1'
-```
-Configuration explain [Trivy Action](https://github.com/aquasecurity/trivy-action#inputs)
+## Code leak scan 
+The code leak scan is the default function which has been integration in this workflow. which is the first task and if the scan not passed, it will interrupt this process. utill you resovled these secret or vulnerability leak. the task name is 
+
+`- name: Run Trivy vulnerability scanner in repo mode` 
+
+Default enabled scan scope : 
+* secret
+* vulnerability 
+  
+Configuration reference [Trivy Action](https://github.com/aquasecurity/trivy-action#inputs)
