@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: Wiredcraft/github-actions
-          path: ./.trivyignore
+          path: ./trivyignore
           ref: trivy-whitelist
           
       #Trivy as our default code scan tool
@@ -68,7 +68,7 @@ jobs:
         with:
           scan-type: 'fs'
           ignore-unfixed: true
-          trivyignores: .trivyignore/.trivyignore
+          trivyignores: trivyignore/.trivyignore
           security-checks: secret,vuln
           format: 'table'
           severity: 'CRITICAL'
