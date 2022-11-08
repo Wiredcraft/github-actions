@@ -75,21 +75,21 @@ jobs:
             type=ref,event=branch
             type=ref,event=tag
 
-      - name: Login to PrivateRegistry
-        # https://github.com/actions/runner/issues/1483
-        if: ${{ inputs.push }}
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD}}
+      # - name: Login to PrivateRegistry
+      #   # https://github.com/actions/runner/issues/1483
+      #   if: ${{ inputs.push }}
+      #   uses: docker/login-action@v1
+      #   with:
+      #     registry: ${{ secrets.REGISTRY }}
+      #     username: ${{ secrets.REGISTRY_USERNAME }}
+      #     password: ${{ secrets.REGISTRY_PASSWORD}}
 
-      - name: Build and push
+      - name: Build
         uses: docker/build-push-action@v2
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
-          push: ${{ inputs.push }}
+          push: flase
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
@@ -98,3 +98,40 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+    outputs:
+      imageTag: ${{ steps.meta.outputs.tags }}
+
+  distribute:
+    needs: [build]
+    name: build docker image
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 20
+    steps:
+      - name: Login to PrivateRegistry
+        # https://github.com/actions/runner/issues/1483
+        # if: ${{ inputs.push }}
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD}} 
+
+      - name: upload docker image to artifacts
+        uses: ishworkh/docker-image-artifact-upload@v1
+        with:
+          image: ${{ needs.build.outputs.imageTag }}
+
+      # - name: Build and push
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: ${{ inputs.docker_context }}
+      #     file: ${{ inputs.docker_file }}
+      #     push: ${{ inputs.push }}
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
+      #     build-args: |
+      #       OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
+      #       NODE_ENV=${{ inputs.node_env }}
+      #       NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+      #       OMNI_COMPONENT_COMMIT=${{ github.sha }}
+      #       OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
