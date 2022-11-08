@@ -41,6 +41,10 @@ on:
         required: true
       NPM_TOKEN:
         required: false
+      MINIO_CN_ACCESS_KEY_ID:
+        required: true
+      MINIO_CN_SECRET_ACCESS_KEY:
+        required: true
 jobs:
   build:
     name: build docker image
@@ -61,6 +65,7 @@ jobs:
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
+        id: buildx
         uses: docker/setup-buildx-action@v2
 
       # Extract metadata (tags, labels) for Docker
@@ -75,21 +80,22 @@ jobs:
             type=ref,event=branch
             type=ref,event=tag
 
-      # - name: Login to PrivateRegistry
-      #   # https://github.com/actions/runner/issues/1483
-      #   if: ${{ inputs.push }}
-      #   uses: docker/login-action@v1
-      #   with:
-      #     registry: ${{ secrets.REGISTRY }}
-      #     username: ${{ secrets.REGISTRY_USERNAME }}
-      #     password: ${{ secrets.REGISTRY_PASSWORD}}
+      - name: Login to PrivateRegistry
+        # https://github.com/actions/runner/issues/1483
+        if: ${{ inputs.push }}
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD}}
 
       - name: Build
         uses: docker/build-push-action@v2
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
-          push: flase
+          builder: ${{ steps.buildx.outputs.name }}
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
@@ -98,40 +104,39 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+      
+      - name: Set docker image tar version
+        id: setimgver
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "::set-output name=IMAGE_TAR_VER::$calculatedSha"
+          
+      - name: save docker image to tar file
+        run: docker save --output ${{ inputs.project }}-${{ env.COMPONENT_NAME }}-${{ steps.setimgver.outputs.IMAGE_TAR_VER }}.tar ${{ steps.meta.outputs.tags }}
+
+      - name: upload docker image to private minio storage
+        run: |   
+          export AWS_ACCESS_KEY_ID=${{ secrets.MINIO_CN_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_CN_SECRET_ACCESS_KEY }}
+          aws --endpoint-url http://10.10.1.30:9000 s3 cp  "${{ inputs.project }}-${{ env.COMPONENT_NAME }}-${{ steps.setimgver.outputs.IMAGE_TAR_VER }}.tar" s3://docker-img-artifacts 
+
+      - name: push image
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{ inputs.docker_context }}
+          file: ${{ inputs.docker_file }}
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
+            NODE_ENV=${{ inputs.node_env }}
+            NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            OMNI_COMPONENT_COMMIT=${{ github.sha }}
+            OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+
     outputs:
       imageTag: ${{ steps.meta.outputs.tags }}
+  
 
-  distribute:
-    needs: [build]
-    name: build docker image
-    runs-on: ${{ inputs.runner }}
-    timeout-minutes: 20
-    steps:
-      - name: Login to PrivateRegistry
-        # https://github.com/actions/runner/issues/1483
-        # if: ${{ inputs.push }}
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD}} 
-
-      - name: upload docker image to artifacts
-        uses: ishworkh/docker-image-artifact-upload@v1
-        with:
-          image: ${{ needs.build.outputs.imageTag }}
-
-      # - name: Build and push
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ${{ inputs.docker_context }}
-      #     file: ${{ inputs.docker_file }}
-      #     push: ${{ inputs.push }}
-      #     tags: ${{ steps.meta.outputs.tags }}
-      #     labels: ${{ steps.meta.outputs.labels }}
-      #     build-args: |
-      #       OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
-      #       NODE_ENV=${{ inputs.node_env }}
-      #       NPM_TOKEN=${{ secrets.NPM_TOKEN }}
-      #       OMNI_COMPONENT_COMMIT=${{ github.sha }}
-      #       OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
