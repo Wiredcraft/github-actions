@@ -108,11 +108,11 @@ jobs:
         id: needminio
         run: |
           if [[ ${{ env.MINIO_CN_ENDPOINTS }} != "" && ${{ env.MINIO_CN_ACCESS_KEY_ID }} != "" && ${{ env.MINIO_CN_SECRET_ACCESS_KEY }} != "" ]];then
-          echo "MINIO_FLAG=true" >> $GITHUB_ENV
-          echo "minio flag set to true!"
+          echo "MINIO_ENABLE=true" >> $GITHUB_ENV
+          echo "MINIO_ENABLE set to true!"
           else
-          echo "MINIO_FLAG=false" >> $GITHUB_ENV
-          echo "minio flag set to false!"
+          echo "MINIO_ENABLE=false" >> $GITHUB_ENV
+          echo "MINIO_ENABLE set to false!"
           fi
         
       - name: Build
@@ -134,11 +134,11 @@ jobs:
 
           
       - name: save docker image to tar file
-        if: env.MINIO_FLAG
+        if: env.MINIO_ENABLE
         run: docker save --output ./${{ steps.setimgver.outputs.IMAGE_TAR_FULLNAME }} ${{ steps.meta.outputs.tags }}
 
       - name: upload docker image to private minio storage
-        if: env.MINIO_FLAG
+        if: env.MINIO_ENABLE
         run: |   
           export AWS_ACCESS_KEY_ID=${{ secrets.MINIO_CN_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_CN_SECRET_ACCESS_KEY }}
