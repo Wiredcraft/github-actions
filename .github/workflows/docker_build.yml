@@ -1,6 +1,10 @@
 name: Workflow to build Docker image
 on:
   workflow_call:
+    outputs:
+      image_tar_name:
+        description: "docker image tar name."
+        value: ${{ jobs.build.outputs.image_tar_name }}
     inputs:
       project:
         required: true
@@ -41,6 +45,12 @@ on:
         required: true
       NPM_TOKEN:
         required: false
+      MINIO_CN_ACCESS_KEY_ID:
+        required: false
+      MINIO_CN_SECRET_ACCESS_KEY:
+        required: false
+      MINIO_CN_ENDPOINT_URL:
+        required: false
 jobs:
   build:
     name: build docker image
@@ -48,6 +58,9 @@ jobs:
     timeout-minutes: 20
     env:
       COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
+      MINIO_CN_ENDPOINTS: ${{ secrets.MINIO_CN_ENDPOINT_URL }}
+      MINIO_CN_ACCESS_KEY_ID: ${{ secrets.MINIO_CN_ACCESS_KEY_ID }}
+      MINIO_CN_SECRET_ACCESS_KEY: ${{ secrets.MINIO_CN_SECRET_ACCESS_KEY }}
 
     steps:
       - name: Checkout repo
@@ -61,6 +74,7 @@ jobs:
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
+        id: buildx
         uses: docker/setup-buildx-action@v2
 
       # Extract metadata (tags, labels) for Docker
@@ -84,11 +98,29 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD}}
 
-      - name: Build and push
+      - name: Set docker image tar name
+        id: setimgver
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "::set-output name=IMAGE_TAR_FULLNAME::${{ inputs.project }}-${{ env.COMPONENT_NAME }}-$calculatedSha.tar"
+      
+      - name: If save image tar or push tar to minio
+        id: needminio
+        run: |
+          if [[ ${{ env.MINIO_CN_ENDPOINTS }} != "" && ${{ env.MINIO_CN_ACCESS_KEY_ID }} != "" && ${{ env.MINIO_CN_SECRET_ACCESS_KEY }} != "" ]];then
+          echo "MINIO_ENABLE=true" >> $GITHUB_ENV
+          echo "MINIO_ENABLE set to true!"
+          else
+          echo "MINIO_ENABLE=false" >> $GITHUB_ENV
+          echo "MINIO_ENABLE set to false!"
+          fi
+        
+      - name: Build
         uses: docker/build-push-action@v2
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
+          builder: ${{ steps.buildx.outputs.name }}
           push: ${{ inputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -97,4 +129,22 @@ jobs:
             NODE_ENV=${{ inputs.node_env }}
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
-            OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+            OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}       
+      
+
+          
+      - name: save docker image to tar file
+        if: env.MINIO_ENABLE
+        run: docker save --output ./${{ steps.setimgver.outputs.IMAGE_TAR_FULLNAME }} ${{ steps.meta.outputs.tags }}
+
+      - name: upload docker image to private minio storage
+        if: env.MINIO_ENABLE
+        run: |   
+          export AWS_ACCESS_KEY_ID=${{ secrets.MINIO_CN_ACCESS_KEY_ID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_CN_SECRET_ACCESS_KEY }}
+          aws --endpoint-url ${{ secrets.MINIO_CN_ENDPOINT_URL }} s3 cp  ./${{ steps.setimgver.outputs.IMAGE_TAR_FULLNAME }}  s3://docker-img-artifacts/${{ steps.setimgver.outputs.IMAGE_TAR_FULLNAME }} 
+
+    outputs:
+      image_tar_name: ${{ steps.setimgver.outputs.IMAGE_TAR_FULLNAME }}
+  
+
