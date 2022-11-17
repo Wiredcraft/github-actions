@@ -1,0 +1,26 @@
+# this workflow assumes the github actions runner is debian
+# and python3-venv is installed
+name: Setup ansible
+description: Action that setup virtualenv with ansible
+inputs:
+  version:
+    type: string
+    default: ""
+    description: "desired ansible version, empty string will use latest"
+    required: false
+  pipmirror:
+    type: string
+    default: https://pypi.tuna.tsinghua.edu.cn/simple
+    description: "mirror for download pip packages"
+    required: false
+  pypimirror:
+    type: string
+    default: https://pypi.org/pypi
+    description: "mirror for query package versions"
+    required: false
+outputs:
+  ansible_path:
+    description: ansible path
+runs:
+  using: node16
+  main: 'dist/index.js'
