@@ -3,7 +3,6 @@ import os from 'os';
 import {ok} from 'assert';
 import * as path from 'path';
 import * as core from '@actions/core';
-import * as cache from '@actions/cache';
 import * as httpclient from '@actions/http-client';
 import {exec, getExecOutput} from '@actions/exec';
 
@@ -77,21 +76,11 @@ async function run(): Promise<void> {
   }
 
   const key = `tool-${toolName}-${version}`;
-  const hit = await cache.restoreCache([_path], key);
-  if (hit !== undefined) {
-    core.info(`Found tool cache for ${toolName} ${version}`);
-    core.addPath(`${_path}/bin`);
-    return
-  }
 
   core.info(`Creating virtualenv ...`);
   await exec(`python3 -m venv ${_path}`);
   core.info(`Installing ${toolName} ${version} ...`);
   await exec(`${_path}/bin/pip install -i ${pipmirror} ansible==${version}`);
-
-  core.info(`Saving to cache...`);
-  const cacheID = await cache.saveCache([_path], key);
-  core.info(`Cache saved as ${cacheID}`);
 
   core.addPath(`${_path}/bin`);
 }
