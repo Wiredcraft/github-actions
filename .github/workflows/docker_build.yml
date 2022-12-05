@@ -120,6 +120,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          load: true
           build-args: |
             OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
             NODE_ENV=${{ inputs.node_env }}
