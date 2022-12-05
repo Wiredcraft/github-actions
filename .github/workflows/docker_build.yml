@@ -104,13 +104,28 @@ jobs:
       - name: If save image tar or push tar to minio
         id: needminio
         run: |
-          if [[ ${{ secrets.MINIO_ENDPOINTS }} != "" && ${{ secrets.MINIO_ACCESS_KEY_ID }} != "" && ${{ secrets.MINIO_SECRET_ACCESS_KEY }} != "" ]];then
+          if [[ ${{ secrets.MINIO_ENDPOINT_URL }} != "" && ${{ secrets.MINIO_ACCESS_KEY_ID }} != "" && ${{ secrets.MINIO_SECRET_ACCESS_KEY }} != "" ]];then
           echo "MINIO_ENABLE=true" >> $GITHUB_ENV
           echo "MINIO_ENABLE set to true!"
           else
           echo "MINIO_ENABLE=false" >> $GITHUB_ENV
           echo "MINIO_ENABLE set to false!"
           fi
+
+      - name: Load to local registry
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{ inputs.docker_context }}
+          file: ${{ inputs.docker_file }}
+          builder: ${{ steps.buildx.outputs.name }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
+            NODE_ENV=${{ inputs.node_env }}
+            NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            OMNI_COMPONENT_COMMIT=${{ github.sha }}
+            OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
 
       - name: Build
         uses: docker/build-push-action@v2
@@ -127,8 +142,6 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
-
-
 
       - name: save docker image to tar file
         if: env.MINIO_ENABLE
