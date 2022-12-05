@@ -112,6 +112,21 @@ jobs:
           echo "MINIO_ENABLE set to false!"
           fi
 
+      - name: Load to local registry
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{ inputs.docker_context }}
+          file: ${{ inputs.docker_file }}
+          builder: ${{ steps.buildx.outputs.name }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
+            NODE_ENV=${{ inputs.node_env }}
+            NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            OMNI_COMPONENT_COMMIT=${{ github.sha }}
+            OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+
       - name: Build
         uses: docker/build-push-action@v2
         with:
@@ -127,8 +142,6 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
-
-
 
       - name: save docker image to tar file
         if: env.MINIO_ENABLE
