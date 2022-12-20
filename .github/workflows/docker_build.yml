@@ -103,8 +103,12 @@ jobs:
 
       - name: If save image tar or push tar to minio
         id: needminio
+        env:
+          MINIO_ENDPOINT_URL: ${{ secrets.MINIO_ENDPOINT_URL }}
+          MINIO_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+          MINIO_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
         run: |
-          if [[ ${{ secrets.MINIO_ENDPOINT_URL }} != "" && ${{ secrets.MINIO_ACCESS_KEY_ID }} != "" && ${{ secrets.MINIO_SECRET_ACCESS_KEY }} != "" ]];then
+          if [[ ${MINIO_ENDPOINT_URL} != "" && ${MINIO_ACCESS_KEY_ID} != "" && ${MINIO_SECRET_ACCESS_KEY} != "" ]];then
           echo "MINIO_ENABLE=true" >> $GITHUB_ENV
           echo "MINIO_ENABLE set to true!"
           else
