@@ -150,7 +150,7 @@ jobs:
 
       - name: save docker image to tar file
         if: env.MINIO_ENABLE
-        run: docker save --output ./${{ steps.setimgver.outputs.IMAGE_TAR_FULLNAME }} ${{ steps.meta.outputs.tags[0] }}
+        run: docker save --output ./${{ steps.setimgver.outputs.IMAGE_TAR_FULLNAME }} ${{ steps.meta.outputs.tags }}
 
       - name: upload docker image to private minio storage
         if: env.MINIO_ENABLE
