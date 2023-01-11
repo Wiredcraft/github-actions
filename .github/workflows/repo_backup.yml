@@ -1,0 +1,21 @@
+name: Git Repository Backup
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+    - repo-backup
+
+jobs:
+  backup:
+    name: git repository backup
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout current code for backup
+      id: checkout
+      uses: actions/checkout@v3
+      with:
+        repository: Wiredcraft/omnisaas-devops
+        ref: master
+    - name: call backup action
+      id: backup
+      uses: Wiredcraft/github-actions/repo-backup@repo-backup

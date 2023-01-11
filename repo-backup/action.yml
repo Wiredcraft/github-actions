@@ -1,0 +1,38 @@
+name:
+description: Action that setup virtualenv with ansible
+inputs:
+  mode:
+    type: string
+    default: "single"
+    description: "backup mode, single: specified or current repository, batch: fetch from GitHub API"
+    required: false
+  repository:
+    type: string
+    default: ""
+    description: "target repository, only valid when mode is single"
+    required: false
+  batchSize:
+    type: int
+    default: 20
+    description: "batch size when mode is batch, will process at most this size of repositories"
+    required: false
+runs:
+  using: docker
+  image: Dockerfile
+  args:  # actual command pass to entrypoint.sh
+  # - backup
+  # - --config
+  # - /config/config.yaml
+  # - -mode
+  # - "${{ inputs.mode }}"
+  # - -repository
+  # - "${{ inputs.repository }}"
+  # - -batch-size
+  # - "${{ inputs.batchSize }}"
+  - /bin/bash
+  - -e
+  - -x
+  - -c
+  - |
+    ls -lah
+    command -v git
