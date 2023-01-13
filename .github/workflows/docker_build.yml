@@ -2,9 +2,12 @@ name: Workflow to build Docker image
 on:
   workflow_call:
     outputs:
-      docker_image_version:
-        description: "docker image version" 
-        value: ${{ jobs.build.outputs.docker_image_version }}
+      docker_tags:
+        description: "docker image full name"
+        value: ${{ jobs.build.outputs.docker_tags }}  
+      runner:
+        description: "build runner name" 
+        value: ${{ jobs.build.outputs.runner }}
     inputs:
       project:
         required: true
@@ -41,8 +44,6 @@ on:
         required: true
       REGISTRY_PASSWORD:
         required: true
-      REGISTRY:
-        required: true
       NPM_TOKEN:
         required: false
 jobs:
@@ -52,6 +53,7 @@ jobs:
     timeout-minutes: 20
     env:
       COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
+      REGISTRY: "registry.wiredcraft.cn"
 
     steps:
       - name: Checkout repo
@@ -74,7 +76,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ secrets.REGISTRY }}/${{ inputs.project }}/${{ env.COMPONENT_NAME }}
+          images: ${{ env.REGISTRY }}/${{ inputs.project }}/${{ env.COMPONENT_NAME }}
           tags: |
             type=edge
             type=ref,event=branch
@@ -87,7 +89,7 @@ jobs:
         if: ${{ inputs.push }}
         uses: docker/login-action@v1
         with:
-          registry: ${{ secrets.REGISTRY }}
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD}}
 
@@ -124,6 +126,7 @@ jobs:
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
 
     outputs:
-      docker_image_version: ${{ steps.meta.outputs.version }}
+      docker_tags: ${{ steps.meta.outputs.tags }}
+      runner: ${{ runner.name }}
 
 
