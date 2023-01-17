@@ -4,9 +4,9 @@ on:
     outputs:
       docker_tags:
         description: "docker image full name"
-        value: ${{ jobs.build.outputs.docker_tags }}  
+        value: ${{ jobs.build.outputs.docker_tags }}
       runner:
-        description: "build runner name" 
+        description: "build runner name"
         value: ${{ jobs.build.outputs.runner }}
     inputs:
       project:
@@ -82,7 +82,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=tag
           flavor: |
-            latest=false          
+            latest=false
 
       - name: Login to PrivateRegistry
         # https://github.com/actions/runner/issues/1483
@@ -125,8 +125,15 @@ jobs:
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
 
+
+      - name: Extract docker tags from meta
+        uses: sergeysova/jq-action@v2
+        id: parse-tags
+        with:
+          cmd: echo "${{ steps.meta.outputs.tags }}" | jq -R -s -c 'split("\n")'
+
     outputs:
-      docker_tags: ${{ steps.meta.outputs.tags }}
+      docker_tags: ${{ fromJSON(steps.parse-tags.outputs.tags) }}
       runner: ${{ runner.name }}
 
 
