@@ -78,7 +78,6 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ inputs.project }}/${{ env.COMPONENT_NAME }}
           tags: |
-            type=edge
             type=ref,event=branch
             type=ref,event=tag
           flavor: |
