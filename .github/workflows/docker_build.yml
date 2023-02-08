@@ -37,7 +37,7 @@ on:
       runner:
         ## ['cn', 'us', 'cn1', 'cn2', 'cn3', 'us1', 'us2', 'us3']
         type: string
-        default: "cn"
+        default: "us"
         required: false
     secrets:
       REGISTRY_USERNAME:
@@ -53,7 +53,7 @@ jobs:
     timeout-minutes: 20
     env:
       COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
-      REGISTRY: "registry.wiredcraft.cn"
+      REGISTRY: "registry.wiredcraft.net"
 
     steps:
       - name: Checkout repo
