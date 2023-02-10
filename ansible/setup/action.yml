@@ -10,7 +10,7 @@ inputs:
     required: false
   pipmirror:
     type: string
-    default: https://pypi.tuna.tsinghua.edu.cn/simple
+    default: https://pypi.org/simple
     description: "mirror for download pip packages"
     required: false
   pypimirror:
