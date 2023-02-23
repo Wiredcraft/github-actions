@@ -1,0 +1,147 @@
+name: Workflow to post status msg in Slack channel
+on:
+  workflow_call:
+    inputs:
+      status:
+        #['success', 'failure', 'cancelled', 'skipped']
+        type: string
+        required: false
+      slack_channel_id:
+        type: string
+        required: true
+      msg:
+        type: string
+        required: true
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: true
+
+
+
+jobs:
+  post-slack-msg:
+    name: Post msg to Slack
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RUN_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+    steps:
+      - name: Post in progress msg on Slack
+        if: inputs.status == ''
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          # Slack channel id, channel name, or user id to post message.
+          # See also: https://api.slack.com/methods/chat.postMessage#channels
+          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
+          channel-id: ${{ inputs.slack_channel_id }}
+          payload: |
+            {
+              "text": "${{ inputs.msg }}",
+              "attachments": [
+                {
+                  "color": "dbab09",
+                  "fields": [
+                    {
+                      "title": "Status",
+                      "short": true,
+                      "value": "In Progress"
+                    },
+                    {
+                      "title": "Run",
+                      "short": true,
+                      "value": "${{ env.RUN_URL }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Post success msg to Slack
+        if: inputs.status == 'success'
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: ${{ inputs.slack_channel_id }}
+          payload: |
+            {
+              "text": "${{ inputs.msg }}",
+              "attachments": [
+                {
+                  "color": "28a745",
+                  "fields": [
+                    {
+                      "title": "Status",
+                      "short": true,
+                      "value": "Success"
+                    },
+                    {
+                      "title": "Run",
+                      "short": true,
+                      "value": "${{ env.RUN_URL }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Post failure msg to Slack
+        if: inputs.status == 'failure'
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: ${{ inputs.slack_channel_id }}
+          payload: |
+            {
+              "text": "${{ inputs.msg }}",
+              "attachments": [
+                {
+                  "color": "bc0d24",
+                  "fields": [
+                    {
+                      "title": "Status",
+                      "short": true,
+                      "value": "Failure"
+                    },
+                    {
+                      "title": "Run",
+                      "short": true,
+                      "value": "${{ env.RUN_URL }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Post cancelled msg to Slack
+        if: inputs.status == 'cancelled'
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: ${{ inputs.slack_channel_id }}
+          payload: |
+            {
+              "text": "${{ inputs.msg }}",
+              "attachments": [
+                {
+                  "color": "808080",
+                  "fields": [
+                    {
+                      "title": "Status",
+                      "short": true,
+                      "value": "Cancelled"
+                    },
+                    {
+                      "title": "Run",
+                      "short": true,
+                      "value": "${{ env.RUN_URL }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
