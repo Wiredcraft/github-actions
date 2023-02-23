@@ -37,20 +37,44 @@ jobs:
           channel-id: ${{ inputs.slack_channel_id }}
           payload: |
             {
-              "text": "${{ inputs.msg }}",
               "attachments": [
                 {
                   "color": "dbab09",
-                  "fields": [
+                  "blocks": [
                     {
-                      "title": "Status",
-                      "short": true,
-                      "value": "In Progress"
+                      "type": "header",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "In progress"
+                      }
                     },
                     {
-                      "title": "Run",
-                      "short": true,
-                      "value": "${{ env.RUN_URL }}"
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "${{ inputs.msg }}"
+                        }
+                    },
+                    {
+                      "type": "divider"
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "status update by ${{ github.actor }} from ${{ github.repository }}."
+                            }
+                        ]
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                  "type": "mrkdwn",
+                                  "text": "<${{ env.RUN_URL }}|check logs>  on Github Action"
+                            }
+                        ]
                     }
                   ]
                 }
@@ -66,20 +90,44 @@ jobs:
           channel-id: ${{ inputs.slack_channel_id }}
           payload: |
             {
-              "text": "${{ inputs.msg }}",
               "attachments": [
                 {
                   "color": "28a745",
-                  "fields": [
+                  "blocks": [
                     {
-                      "title": "Status",
-                      "short": true,
-                      "value": "Success"
+                      "type": "header",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Success"
+                      }
                     },
                     {
-                      "title": "Run",
-                      "short": true,
-                      "value": "${{ env.RUN_URL }}"
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "${{ inputs.msg }}"
+                        }
+                    },
+                    {
+                      "type": "divider"
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "status update by ${{ github.actor }} from ${{ github.repository }}."
+                            }
+                        ]
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                  "type": "mrkdwn",
+                                  "text": "<${{ env.RUN_URL }}|check logs>  on Github Action"
+                            }
+                        ]
                     }
                   ]
                 }
@@ -95,20 +143,44 @@ jobs:
           channel-id: ${{ inputs.slack_channel_id }}
           payload: |
             {
-              "text": "${{ inputs.msg }}",
               "attachments": [
                 {
                   "color": "bc0d24",
-                  "fields": [
+                  "blocks": [
                     {
-                      "title": "Status",
-                      "short": true,
-                      "value": "Failure"
+                      "type": "header",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Failure"
+                      }
                     },
                     {
-                      "title": "Run",
-                      "short": true,
-                      "value": "${{ env.RUN_URL }}"
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "${{ inputs.msg }}"
+                        }
+                    },
+                    {
+                      "type": "divider"
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "status update by ${{ github.actor }} from ${{ github.repository }}."
+                            }
+                        ]
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                  "type": "mrkdwn",
+                                  "text": "<${{ env.RUN_URL }}|check logs>  on Github Action"
+                            }
+                        ]
                     }
                   ]
                 }
@@ -124,20 +196,97 @@ jobs:
           channel-id: ${{ inputs.slack_channel_id }}
           payload: |
             {
-              "text": "${{ inputs.msg }}",
               "attachments": [
                 {
                   "color": "808080",
-                  "fields": [
+                  "blocks": [
                     {
-                      "title": "Status",
-                      "short": true,
-                      "value": "Cancelled"
+                      "type": "header",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Cancelled"
+                      }
                     },
                     {
-                      "title": "Run",
-                      "short": true,
-                      "value": "${{ env.RUN_URL }}"
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "${{ inputs.msg }}"
+                        }
+                    },
+                    {
+                      "type": "divider"
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "status update by ${{ github.actor }} from ${{ github.repository }}."
+                            }
+                        ]
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                  "type": "mrkdwn",
+                                  "text": "<${{ env.RUN_URL }}|check logs>  on Github Action"
+                            }
+                        ]
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Post skipped msg to Slack
+        if: inputs.status == 'skipped'
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: ${{ inputs.slack_channel_id }}
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "808080",
+                  "blocks": [
+                    {
+                      "type": "header",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Skipped"
+                      }
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "${{ inputs.msg }}"
+                        }
+                    },
+                    {
+                      "type": "divider"
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "status update by ${{ github.actor }} from ${{ github.repository }}."
+                            }
+                        ]
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                  "type": "mrkdwn",
+                                  "text": "<${{ env.RUN_URL }}|check logs>  on Github Action"
+                            }
+                        ]
                     }
                   ]
                 }
