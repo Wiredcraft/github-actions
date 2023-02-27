@@ -1,0 +1,25 @@
+name: Check user permission
+description: Action to check if user is a member of a Github team
+inputs:
+  token:
+    description: Secret GitHub API token to use for making API requests.
+    default: ${{ github.token }}
+    required: true
+  org:
+    description: Github org for the team
+    default: Wiredcraft
+    required: false
+  team:
+    description: Github team slug
+    default: ""
+    required: true
+  username:
+    description: Github username
+    default: ${{ github.triggering_actor || github.actor }}
+    required: true
+outputs:
+  is_member:
+    description: if use is a member for Github team
+runs:
+  using: node16
+  main: 'dist/index.js'

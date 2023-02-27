@@ -127,3 +127,41 @@ jobs:
         runner: ${{ needs.build.outputs.runner }}
         docker_tags: ${{ needs.build.outputs.docker_tags }}
 ```
+
+### Check Github user permission
+| Params            | Describe                                                                | Requred |
+|-------------------|-------------------------------------------------------------------------|---------|
+| `inputs.token`    | Github Token with org member read only access                           | Yes     |
+| `inputs.org`      | Gitub org for the team, by default it's `Wiredcraft`                    | No      |
+| `inputs.team`     | Github team slug                                                        | Yes     |
+| `inputs.username` | Github user, suggest to use `github.triggering_actor` or `github.actor` | Yes     |
+
+
+```yaml
+name: Send msg to Slack
+on: [push]
+jobs:
+  check-permission:
+    runs-on: ubuntu-latest
+    outputs:
+      allow: ${{ steps.check-github-permission.outputs.is_member }}
+    steps:
+      - id: check-github-permission
+        uses: Wiredcraft/github-actions/check-github-user-permission@master
+        with:
+          token: ${{ secrets.GITHUB_ORG_TOKEN }}
+          team: devops
+          username: ${{ github.triggering_actor || github.actor }}
+
+
+  slack-notify:
+    uses: Wiredcraft/github-actions/.github/workflows/slack_status_notify.yml@master
+    needs: [check-permission]
+    if: needs.check-permission.outputs.allow == 'true'
+    with:
+      slack_channel_id: "Cxxxxxx" #
+      msg: "Hello this is a msg from Github Action"
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+```
+
