@@ -9551,13 +9551,7 @@ function isUserInGithubTeam(token, orgName, teamSlug, username) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = (0, github_1.getOctokit)(token);
         try {
-            const teamResponse = yield octokit.request('GET /orgs/{org}/teams/{team_slug}', {
-                org: orgName,
-                team_slug: teamSlug,
-                headers: {
-                    'X-GitHub-Api-Version': '2022-11-28'
-                }
-            });
+            const teamResponse = yield octokit.rest.teams.getByName({ org: orgName, team_slug: teamSlug });
             core.debug(`Find team ${teamResponse.data.name} in org ${teamResponse.data.organization}`);
         }
         catch (e) {
@@ -9567,14 +9561,7 @@ function isUserInGithubTeam(token, orgName, teamSlug, username) {
             throw new Error(`Got ${e.status} ${e.response} to check team ${teamSlug} in ${orgName}`);
         }
         try {
-            const membershipResponse = yield octokit.request('GET /orgs/{org}/teams/{team_slug}/memberships/{username}', {
-                org: orgName,
-                team_slug: teamSlug,
-                username: username,
-                headers: {
-                    'X-GitHub-Api-Version': '2022-11-28'
-                }
-            });
+            const membershipResponse = yield octokit.rest.teams.getMembershipForUserInOrg({ org: orgName, team_slug: teamSlug, username: username });
             return membershipResponse.status === 200;
         }
         catch (e) {

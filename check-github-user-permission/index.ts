@@ -5,13 +5,7 @@ async function isUserInGithubTeam(token: string, orgName: string, teamSlug: stri
     const octokit = getOctokit(token);
 
     try {
-        const teamResponse = await octokit.request('GET /orgs/{org}/teams/{team_slug}', {
-            org: orgName,
-            team_slug: teamSlug,
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
-        })
+        const teamResponse = await octokit.rest.teams.getByName({org: orgName, team_slug: teamSlug})
         core.debug(`Find team ${teamResponse.data.name} in org ${teamResponse.data.organization}`)
     } catch (e: any) {
         if (e.status == 404) {
@@ -21,14 +15,7 @@ async function isUserInGithubTeam(token: string, orgName: string, teamSlug: stri
     }
 
     try {
-        const membershipResponse = await octokit.request('GET /orgs/{org}/teams/{team_slug}/memberships/{username}', {
-            org: orgName,
-            team_slug: teamSlug,
-            username: username,
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
-        })
+        const membershipResponse = await octokit.rest.teams.getMembershipForUserInOrg({org: orgName, team_slug: teamSlug, username: username})
         return membershipResponse.status === 200;
 
     } catch (e: any) {
