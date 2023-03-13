@@ -127,13 +127,6 @@ jobs:
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
 
-
-      - name: Extract docker tags from meta
-        uses: sergeysova/jq-action@v2
-        id: parse-tags
-        with:
-          cmd: echo "${{ steps.meta.outputs.tags }}" | jq -R -s -c 'split("\n")'
-
     outputs:
 #       docker_tags: ${{ fromJSON(steps.parse-tags.outputs.tags) }}
       docker_tags: ${{ steps.meta.outputs.tags }}
@@ -143,6 +136,7 @@ jobs:
     name: sonarqube code scan
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 20
+    
 
     steps:
       - name: Checkout repo
