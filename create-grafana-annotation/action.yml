@@ -1,0 +1,43 @@
+name: Create Grafana Annotation
+description: Create an Annotation on Grafana
+inputs:
+  token:
+    description: Grafana token to request Grafana HTTP annotation API 
+    default: ""
+    required: true
+  host:
+    description: Grafana API host
+    default: ""
+    required: true
+  text:
+    description: Text of the annotation
+    default: ""
+    required: true
+  time:
+    description: Time for this annotation, by default it's Date.now()
+    default: ""
+    required: false
+  time_end:
+    description: Time for this annotation to end, by default it's empty
+    default: ""
+    required: false
+  dashboard_id:
+    description: Id of the dashboard to add the annotation on, by default it apply to all dashboards
+    default: ""
+    required: false
+  panel_id:
+    description: Id of the panel to add the annotation on, by default it apply to all panels
+    default: ""
+    required: false
+  tags:
+    description: Comma-separated list of tags assigned to the annotation
+    default: ""
+    reqired: false
+  
+outputs:
+  annotation_id:
+    description: the annotation id
+
+runs:
+  using: node16
+  main: 'dist/index.js'

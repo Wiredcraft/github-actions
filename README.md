@@ -165,3 +165,34 @@ jobs:
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 ```
 
+### Create Grafana Annotation
+| Params                | Describe                                                                            | Required |
+|-----------------------|-------------------------------------------------------------------------------------|----------|
+| `inputs.token`        | Grafana token to request Grafana HTTP annotation API                                | Yes      |
+| `inputs.host`         | Grafana API host                                                                    | Yes      |
+| `inputs.text`         | Text of the annotation                                                              | Yes      |
+| `inputs.time`         | Time for this annotation, by default it's Date.now()                                | No       |
+| `inputs.time_end`     | Time for this annotation to end, by default it's empty                              | No       |
+| `inputs.dashboard_id` | Id of the dashboard to add the annotation on, by default it apply to all dashboards | No       |
+| `inputs.panel_id`     | Id of the panel to add the annotation on, by default it apply to all panels         | No       |
+| `inputs.tags`         | Comma-separated list of tags assigned to the annotation, e.g. `release, backend`    | No       |
+
+```yaml
+name: Deploy backend
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  grafana-annotation:
+  runs-on: cn
+  steps:
+    - uses: Wiredcraft/github-actions/create-grafana-annotation@master
+      with:
+        token: ${{ secrets.GRAFANA_TOKEN }}
+        host: ${{ vars.GRAFANA_HOST }}
+        text: New release
+        dashboard_id: 1
+        tags: "release, backend"
+```
