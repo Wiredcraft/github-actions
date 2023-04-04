@@ -61,7 +61,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: "0"
-          
+
       # Add support for more platforms with QEMU (optional)
       # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU
@@ -79,10 +79,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ inputs.project }}/${{ env.COMPONENT_NAME }}
           tags: |
+            type=ref,event=pr
             type=ref,event=branch
             type=ref,event=tag
-          flavor: |
-            latest=false
+            type=edge,branch=develop
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Login to PrivateRegistry
         # https://github.com/actions/runner/issues/1483
@@ -126,7 +127,6 @@ jobs:
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
 
     outputs:
-#       docker_tags: ${{ fromJSON(steps.parse-tags.outputs.tags) }}
       docker_tags: ${{ steps.meta.outputs.tags }}
       runner: ${{ runner.name }}
 
