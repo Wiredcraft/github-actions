@@ -20,6 +20,10 @@ on:
         required: false
         type: string
         default: "production"
+      load:
+        required: false
+        type: boolean
+        default: true
       push:
         required: false
         type: boolean
@@ -96,13 +100,14 @@ jobs:
 
       - name: Load to local registry
         uses: docker/build-push-action@v2
+        if: ${{ inputs.load }}
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
           builder: ${{ steps.buildx.outputs.name }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          load: true
+          load: ${{ inputs.load }}
           build-args: |
             OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
             NODE_ENV=${{ inputs.node_env }}
