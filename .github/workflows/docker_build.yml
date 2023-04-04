@@ -98,7 +98,7 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD}}
 
-      - name: Load to local registry
+      - name: Build and load to local with cache
         uses: docker/build-push-action@v2
         if: ${{ inputs.load }}
         with:
@@ -108,6 +108,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           load: ${{ inputs.load }}
+          cache-from: type=gha
+          cache-to: type=gha
           build-args: |
             OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
             NODE_ENV=${{ inputs.node_env }}
@@ -115,7 +117,8 @@ jobs:
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
 
-      - name: Build
+
+      - name: Build and push to remote registry with cache
         uses: docker/build-push-action@v2
         with:
           context: ${{ inputs.docker_context }}
@@ -124,6 +127,8 @@ jobs:
           push: ${{ inputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha
           build-args: |
             OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
             NODE_ENV=${{ inputs.node_env }}
