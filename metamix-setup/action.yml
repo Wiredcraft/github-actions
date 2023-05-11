@@ -1,0 +1,13 @@
+name: Setup Metamix
+description: Action that setup Metamix
+inputs:
+  binary_download_url:
+    description: "the url of metamix binary download"
+    default: "https://example/metamix-linux-amd64"
+    required: true
+outputs:
+  metamix_path:
+    description: "the path of metamix binary"
+runs:
+  using: node16
+  main: 'dist/index.js'

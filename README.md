@@ -194,5 +194,27 @@ jobs:
         host: ${{ vars.GRAFANA_HOST }}
         text: New release
         dashboard_id: 1
-        tags: "release, backend"
+        tags: 'release, backend'
+```
+
+### Setup metamix
+
+| Params                       | Describe                           | Required |
+| ---------------------------- | ---------------------------------- | -------- |
+| `inputs.binary_download_url` | the url of metamix binary download | Yes      |
+
+```yaml
+name: Setup metamix
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  setup:
+    runs-on: cn
+    steps:
+      - uses: Wiredcraft/github-actions/metamix-setup@master
+        with:
+          binary_download_url: 'https://example/metamix-linux-amd64'
 ```
