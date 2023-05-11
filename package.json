@@ -6,6 +6,7 @@
     "eslint": "eslint --ext .ts .",
     "lint": "yarn eslint && yarn prettier-check",
     "build-ansible-ansible": "ncc build ./ansible/setup/index.ts -o ansible/setup/dist",
+    "build-metamix-setup": "ncc build ./metamix-setup/index.ts -o metamix-setup/dist",
     "build-check-github-user-permission": "ncc build ./check-github-user-permission/index.ts -o check-github-user-permission/dist",
     "build-create-grafana-annotation": "ncc build ./create-grafana-annotation/index.ts -o create-grafana-annotation/dist"
   },
