@@ -43,6 +43,9 @@ on:
         type: string
         default: "cn"
         required: false
+      next_cms_url:
+        type: string
+        required: true
     secrets:
       REGISTRY_USERNAME:
         required: true
@@ -51,8 +54,6 @@ on:
       NPM_TOKEN:
         required: false
       NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN:
-        required: true
-      NEXT_CMS_URL:
         required: true
 
 jobs:
@@ -119,7 +120,7 @@ jobs:
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
             NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}
-            NEXT_CMS_URL=${{ secrets.NEXT_CMS_URL_STAGING }}
+            NEXT_CMS_URL=${{ inputs.next_cms_url }}
 
       - name: Build
         uses: docker/build-push-action@v2
@@ -137,7 +138,7 @@ jobs:
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
             NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}
-            NEXT_CMS_URL=${{ secrets.NEXT_CMS_URL_STAGING }}
+            NEXT_CMS_URL=${{ inputs.next_cms_url }}
 
     outputs:
       docker_tags: ${{ steps.meta.outputs.tags }}
