@@ -46,6 +46,9 @@ on:
       next_cms_url:
         type: string
         required: true
+      next_public_google_tag_manager:
+        type: string
+        required: true
     secrets:
       REGISTRY_USERNAME:
         required: true
@@ -121,6 +124,7 @@ jobs:
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
             NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}
             NEXT_CMS_URL=${{ inputs.next_cms_url }}
+            NEXT_PUBLIC_GOOGLE_TAG_MANAGER=${{ inputs.next_public_google_tag_manager }}
 
       - name: Build
         uses: docker/build-push-action@v2
@@ -139,6 +143,7 @@ jobs:
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
             NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}
             NEXT_CMS_URL=${{ inputs.next_cms_url }}
+            NEXT_PUBLIC_GOOGLE_TAG_MANAGER=${{ inputs.next_public_google_tag_manager }}
 
     outputs:
       docker_tags: ${{ steps.meta.outputs.tags }}
