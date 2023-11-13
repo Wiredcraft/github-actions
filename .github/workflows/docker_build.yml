@@ -52,6 +52,8 @@ on:
         required: false
       NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN:
         required: true
+      NEXT_CMS_URL:
+        required: true
 
 jobs:
   build:
@@ -61,8 +63,7 @@ jobs:
     env:
       COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
       REGISTRY: "registry.wiredcraft.cn"
-      NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN: "${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}"
-
+      
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -118,6 +119,7 @@ jobs:
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
             NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}
+            NEXT_CMS_URL=${{ secrets.NEXT_CMS_URL_STAGING }}
 
       - name: Build
         uses: docker/build-push-action@v2
@@ -135,6 +137,7 @@ jobs:
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
             NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}
+            NEXT_CMS_URL=${{ secrets.NEXT_CMS_URL_STAGING }}
 
     outputs:
       docker_tags: ${{ steps.meta.outputs.tags }}
