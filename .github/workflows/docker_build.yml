@@ -49,6 +49,9 @@ on:
       next_public_google_tag_manager:
         type: string
         required: true
+      deploy_env:
+        type: string
+        required: true
     secrets:
       REGISTRY_USERNAME:
         required: true
@@ -125,6 +128,7 @@ jobs:
             NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}
             NEXT_CMS_URL=${{ inputs.next_cms_url }}
             NEXT_PUBLIC_GOOGLE_TAG_MANAGER=${{ inputs.next_public_google_tag_manager }}
+            DEPLOY_ENV=${{ inputs.deploy_env }}
 
       - name: Build
         uses: docker/build-push-action@v2
@@ -144,6 +148,7 @@ jobs:
             NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_GL_ACCESS_TOKEN }}
             NEXT_CMS_URL=${{ inputs.next_cms_url }}
             NEXT_PUBLIC_GOOGLE_TAG_MANAGER=${{ inputs.next_public_google_tag_manager }}
+            DEPLOY_ENV=${{ inputs.deploy_env }}
 
     outputs:
       docker_tags: ${{ steps.meta.outputs.tags }}
