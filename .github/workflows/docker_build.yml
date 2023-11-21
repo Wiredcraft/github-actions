@@ -43,6 +43,14 @@ on:
         type: string
         default: "cn"
         required: false
+      # public_url:
+      #   type: string
+      #   default: "https://staging-prada.omnisaas.cn"
+      #   required: true
+      # env:
+      #   type: string
+      #   default: "staging"
+      #   required: true
     secrets:
       REGISTRY_USERNAME:
         required: true
@@ -105,7 +113,7 @@ jobs:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
           builder: ${{ steps.buildx.outputs.name }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}_${{ inputs.build_env }}
           labels: ${{ steps.meta.outputs.labels }}
           load: ${{ inputs.load }}
           build-args: |
@@ -114,6 +122,7 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+            NEXT_PUBLIC_API_BASE_URL=${{ inputs.public_url }}
 
       - name: Build
         uses: docker/build-push-action@v2
@@ -122,7 +131,7 @@ jobs:
           file: ${{ inputs.docker_file }}
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ inputs.push }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}_${{ inputs.build_env }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
@@ -130,6 +139,7 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+            NEXT_PUBLIC_API_BASE_URL=${{ inputs.public_url }}
 
     outputs:
       docker_tags: ${{ steps.meta.outputs.tags }}
