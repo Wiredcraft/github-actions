@@ -53,7 +53,7 @@ jobs:
     timeout-minutes: 20
     env:
       COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
-      REGISTRY: "registry.wiredcraft.net"
+      REGISTRY: "registry.cybex-app.com"
 
     steps:
       - name: Checkout repo
