@@ -58,7 +58,7 @@ jobs:
     timeout-minutes: 20
     env:
       COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
-      REGISTRY: "registry.wiredcraft.cn"
+      REGISTRY: "registry-proxy.svenshen.com"
 
     steps:
       - name: Checkout repo
