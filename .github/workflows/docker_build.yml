@@ -86,7 +86,6 @@ jobs:
             type=ref,event=pr
             type=ref,event=branch
             type=ref,event=tag
-            type=edge,branch=develop
 
       - name: Login to PrivateRegistry
         # https://github.com/actions/runner/issues/1483
