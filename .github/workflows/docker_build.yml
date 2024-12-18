@@ -43,6 +43,14 @@ on:
         type: string
         default: "cn"
         required: false
+      environment:
+        type: string
+        required: false
+      sentry_client_sample_rate:
+        type: string
+        required: true
+        default: "1"
+
     secrets:
       REGISTRY_USERNAME:
         required: true
@@ -83,10 +91,9 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ inputs.project }}/${{ env.COMPONENT_NAME }}
           tags: |
-            type=ref,event=pr
-            type=ref,event=branch
-            type=ref,event=tag
-            type=edge,branch=develop
+            type=ref,event=pr,suffix=-${{ inputs.environment }}
+            type=ref,event=branch,suffix=-${{ inputs.environment }}
+            type=ref,event=tag,suffix=-${{ inputs.environment }}
 
       - name: Login to PrivateRegistry
         # https://github.com/actions/runner/issues/1483
@@ -113,6 +120,7 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+            NEXT_PUBLIC_SENTRY_CLIENT_SAMPLE_RATE=${{ inputs.sentry_client_sample_rate }}
 
       - name: Build
         uses: docker/build-push-action@v2
@@ -129,6 +137,7 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+            NEXT_PUBLIC_SENTRY_CLIENT_SAMPLE_RATE=${{ inputs.sentry_client_sample_rate }}
 
     outputs:
       docker_tags: ${{ steps.meta.outputs.tags }}
