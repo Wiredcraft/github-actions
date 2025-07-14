@@ -43,6 +43,11 @@ on:
         type: string
         default: "cn"
         required: false
+      
+      env_vars:
+        description: "Extra environment variables, comma separated, e.g. FOO=bar,BAR=foo"
+        required: false
+        type: string
     secrets:
       REGISTRY_USERNAME:
         required: true
@@ -96,6 +101,17 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD}}
 
+      - name: Process env_vars
+        id: process_env
+        run: |
+          if [ -n "${{ inputs.env_vars }}" ]; then
+            echo "env_list<<EOF" >> $GITHUB_ENV
+            echo "${{ inputs.env_vars }}" | tr ',' '\n' >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "env_list=" >> $GITHUB_ENV
+          fi
+        shell: bash
       - name: Load to local registry
         uses: docker/build-push-action@v5
         if: ${{ inputs.load }}
@@ -112,6 +128,7 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+            ${{ env.env_list }}
 
       - name: Build
         uses: docker/build-push-action@v5
@@ -128,6 +145,7 @@ jobs:
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             OMNI_COMPONENT_COMMIT=${{ github.sha }}
             OMNI_COMPONENT_VERSION=${{ steps.meta.outputs.version }}
+            ${{ env.env_list }}
 
     outputs:
       docker_tags: ${{ steps.meta.outputs.tags }}
