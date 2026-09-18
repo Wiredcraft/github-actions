@@ -28,6 +28,11 @@ on:
         required: false
         type: boolean
         default: true
+      platforms:
+        description: "comma-separated target platforms for the pushed image, e.g. linux/amd64,linux/arm64. Empty = runner's native platform"
+        required: false
+        type: string
+        default: ""
       docker_context:
         description: "the path where docker build execute."
         required: false
@@ -55,7 +60,7 @@ jobs:
   build:
     name: build docker image
     runs-on: ${{ inputs.runner }}
-    timeout-minutes: 20
+    timeout-minutes: 60
     env:
       COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
       REGISTRY: "registry.wiredcraft.net"
@@ -120,6 +125,7 @@ jobs:
           file: ${{ inputs.docker_file }}
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ inputs.push }}
+          platforms: ${{ inputs.platforms }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
