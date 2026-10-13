@@ -48,6 +48,11 @@ on:
         type: string
         default: "cn"
         required: false
+      timeout_minutes:
+        description: "job timeout. A cold multi-arch build needs more than the steady-state value: cache-to only exports after a SUCCESSFUL build, so a build killed by the timeout writes no cache and the next one starts cold again."
+        required: false
+        type: number
+        default: 60
     secrets:
       REGISTRY_USERNAME:
         required: true
@@ -60,7 +65,7 @@ jobs:
   build:
     name: build docker image
     runs-on: ${{ inputs.runner }}
-    timeout-minutes: 60
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     env:
       COMPONENT_NAME: "${{ inputs.component || github.event.repository.name }}"
       REGISTRY: "registry.wiredcraft.net"
@@ -79,6 +84,15 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          # These runners are self-hosted, so the buildkit container can outlive the
+          # job and keep its local layer cache. The default behaviour is a throwaway
+          # builder per run plus cleanup afterwards, which discards that cache every
+          # time and makes every build cold - expensive here because the arm64 pass
+          # is emulated.
+          name: omni-multiarch
+          driver: docker-container
+          cleanup: false
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
