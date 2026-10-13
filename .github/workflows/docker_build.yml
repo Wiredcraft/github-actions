@@ -117,11 +117,13 @@ jobs:
 
       - name: Load to local registry
         uses: docker/build-push-action@v5
-        # `load` imports into the local docker daemon, which cannot hold a manifest
-        # list, so it is meaningless for a multi-platform build and only costs an
-        # export of the whole image. Nothing in this workflow consumes the loaded
-        # image anyway: the scan job runs on a different runner.
-        if: ${{ inputs.load && !contains(inputs.platforms, ',') }}
+        # Keep this even for multi-platform builds. It loads the runner's native
+        # platform only, and the scan job that follows relies on that local image:
+        # it passes the full registry tag to trivy but has no docker login of its
+        # own, and finishes with `docker rmi` on a local reference. The cost is an
+        # export to the docker daemon, not a second build, since the amd64 layers
+        # are shared with the pushing build below.
+        if: ${{ inputs.load }}
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
