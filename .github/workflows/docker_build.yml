@@ -103,7 +103,11 @@ jobs:
 
       - name: Load to local registry
         uses: docker/build-push-action@v5
-        if: ${{ inputs.load }}
+        # `load` imports into the local docker daemon, which cannot hold a manifest
+        # list, so it is meaningless for a multi-platform build and only costs an
+        # export of the whole image. Nothing in this workflow consumes the loaded
+        # image anyway: the scan job runs on a different runner.
+        if: ${{ inputs.load && !contains(inputs.platforms, ',') }}
         with:
           context: ${{ inputs.docker_context }}
           file: ${{ inputs.docker_file }}
@@ -128,6 +132,17 @@ jobs:
           platforms: ${{ inputs.platforms }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Without a cache every build starts cold, and on an x86 runner the arm64
+          # pass runs under QEMU, where `yarn install` is by far the most expensive
+          # layer. The Dockerfiles copy package.json and yarn.lock before the source,
+          # so that layer is keyed on the lockfile: a code-only change reuses it
+          # instead of re-emulating the whole install.
+          # mode=max also caches intermediate builder stages, not just the final one.
+          # image-manifest/oci-mediatypes keep the cache object in a form Harbor
+          # accepts. The ref is shared across branches on purpose, since branches
+          # share base and dependency layers.
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ inputs.project }}/${{ env.COMPONENT_NAME }}:buildcache
+          cache-to: ${{ inputs.push && format('type=registry,ref={0}/{1}/{2}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true', env.REGISTRY, inputs.project, env.COMPONENT_NAME) || '' }}
           build-args: |
             OMNI_COMPONENT=${{ env.COMPONENT_NAME }}
             NODE_ENV=${{ inputs.node_env }}
