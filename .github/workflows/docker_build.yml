@@ -52,7 +52,12 @@ on:
         description: "job timeout. A cold multi-arch build needs more than the steady-state value: cache-to only exports after a SUCCESSFUL build, so a build killed by the timeout writes no cache and the next one starts cold again."
         required: false
         type: number
-        default: 60
+        # 180 because the arm64 pass runs under QEMU on an x86 runner and a cold
+        # build does not fit in 60. The emulation tax is spread across the whole
+        # `yarn install` (the link phase alone took ~22 min), plus snappy compiling
+        # from source - it has no musl/arm64 prebuild. Interim measure: the real fix
+        # is building arm64 on a native worker, after which this can come back down.
+        default: 180
     secrets:
       REGISTRY_USERNAME:
         required: true
